@@ -7,11 +7,11 @@ import SR_TSL.net.sr as myNet
 from SR_TSL.net.tsl import LearningClassier
 import time
 class myprocessor:
-    def __init__(self):
+    def __init__(self,learn=0.01):
         a=1
         self.sc=8
         self.NumberLabel = 6
-        self.learningrate=0.0001
+        self.learningrate=learn
         self.momentum=0.9
 
         self.device = tor.device("cpu")
@@ -36,7 +36,7 @@ class myprocessor:
         self.learner.eval()
 
     def saveModel(self,path="model/test.pkl"):
-        tor.save(self.learner,path)
+        tor.save(self.learner.state_dict(),path)
 
 
     def fit(self,videodata,label):
@@ -45,11 +45,12 @@ class myprocessor:
             HP=HP.detach()
             HV=HV.detach()
         HS=tor.add(HP,HV)
+
+        self.optimizer.zero_grad()
         probabilities=self.learner(HS)
         ytrue = self.initLabelMatrix(label)
         ytrue=ytrue.to(self.device)
         loss=self.cirterion(probabilities,ytrue)
-        self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
@@ -87,9 +88,10 @@ class myprocessor:
                     probabilities,loss = self.fit(data,label)
                     ls+=loss
                     del  data
-                    print("loss:", ls)
+                    print("loss:", loss)
                 print("label finish at:",time.asctime( time.localtime(time.time())))
-            print("epoch ",epoch," finished with loss ",ls)
+            print("epoch ",epoch," finished with total loss ",ls)
+
         current=time.time()
         print("train finish at:",time.asctime( time.localtime(current)))
         print("cost ",current-starttime," ms")

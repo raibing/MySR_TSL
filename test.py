@@ -47,28 +47,21 @@ if __name__ == "__main__":
     model.train(train_path)
     print("train finish")
     model.saveNet(save_paths)
-
-
     print("save finish")
     '''
-
-    processor = myprocessor()
-    processor.runOnGPU(True)
-    print("train start")
-    processor.train(train_path)
-    print("finish")
-    #processor.saveModel()
-    print("saved")
-
-
     train_path = "Data/train"
-
+    processor = myprocessor(learn=0.01)
+    processor.runOnGPU(True)
+   # processor.loadModel()
+    print("train start")
+    processor.train(train_path,epoch=10)
+    print("finish")
+    processor.saveModel()
+    print("saved")
     processor.test(train_path)
     print("test finished")
-
     file = Path("Data/train/two/two")
     data = myIO.readOp3d(file, pattern="*ts_1.json")
-
     prediction=processor.predict(data)
     print("expect two prediction:",prediction)
 
