@@ -286,36 +286,36 @@ def test():
         matrix[x] = 1
         return matrix
 
-    k = 67
+    k = 31
     grnndim = 8
     hm = 4
-    n = 6
+    n = 4
     weight = tor.ones(k, grnndim)
     bias = tor.zeros(k, grnndim)
     cri = sr.myLoss()
-    rnn = sr.sr_tsl(8, n)
+    #rnn = sr.sr_tsl(8, n)
     learn = tsl.LearningClassier(8, n, drop=0.5)
-    # lst=nn.LSTM(hm,hm,hm)
-    # rnn=RNN()
-    lasth = tor.zeros(4, 1, hm)
+    rnn=nn.LSTM(hm,hm,hm)
+
+    lasth = tor.zeros(4, k, hm)
     lasth2 = tor.zeros(4, 1, hm)
     lasth3 = tor.zeros(4, 1, hm)
-    lastc = tor.zeros(4, 1, hm)
+    lastc = tor.zeros(4, k, hm)
     lastc1 = tor.zeros(4, 1, hm)
     lastc2 = tor.zeros(4, 1, hm)
     optimizer = Adam(learn.parameters(), lr=0.001)
 
     for i in range(3):
-        data = tor.rand(31, k, 4)
+        data = tor.rand(31,k, 4)
         loss = 0
-        hp, hc = rnn(data)
-        hp = hp.detach()
+        out ,(lasth,lastc) = rnn(data,(lasth,lastc))
+        print(out.size())
 
         # hp=Variable(hp,requires_grad=False)
         # hp=tor.rand(2,8,1,8)
 
 
-        out = learn(hp)
+       # out = learn(out)
 
         x = math.floor((random.random() * 100) % n)
         ytrue = initLabelMatrix(n, x)

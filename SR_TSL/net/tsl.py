@@ -20,17 +20,19 @@ class skip_clipLSTM(nn.Module):
         self.lastC3.to(dev)
 
     def forward(self, input,lasth,lastc):
-        out1,(h1,c1)=self.lstm1(input,None)
+        out1,(h1,c1)=self.lstm1(input,(lasth,lastc))
         x1=tor.cat((lasth,h1))
 
 
-        out2,(h2,c2) = self.lstm2(x1,None)
+
+        out2,(h2,c2) = self.lstm2(x1,(self.lastH2,self.lastC2))
         x2 = tor.cat(( self.lastH2,h2))
-        self.lastH2 = h2.view(h2.size())
+        self.lastH2 = h2
+        self.lastC2=c2
 
-
-        out3,(h3,c3)=self.lstm3(x2,None)
+        out3,(h3,c3)=self.lstm3(x2,(self.lastH3,self.lastC3))
         self.lastH3 = h3.view(h3.size())
+        self.lastC3=c3
 
         return  out3,(h3,c3)
 

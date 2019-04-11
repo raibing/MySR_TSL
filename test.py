@@ -15,6 +15,7 @@ from pathlib import Path
 from SR_TSL.processor.myprocessor import myprocessor
 from torch.optim import Adam
 import random
+from  SR_TSL.processor import demo
 
 if __name__ == "__main__":
 
@@ -52,9 +53,9 @@ if __name__ == "__main__":
     train_path = "Data/train"
     processor = myprocessor(learn=0.01)
     processor.runOnGPU(True)
-   # processor.loadModel()
+
     print("train start")
-    processor.train(train_path,epoch=10)
+    processor.train(train_path,load=True,loadpath="model/test.pkl",epoch=10)
     print("finish")
     processor.saveModel()
     print("saved")
@@ -65,8 +66,7 @@ if __name__ == "__main__":
     prediction=processor.predict(data)
     print("expect two prediction:",prediction)
 
-
-
+    #demo.test()
 
 
 

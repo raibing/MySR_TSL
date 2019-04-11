@@ -352,7 +352,7 @@ class sr_tsl(nn.Module):
         self.d2 = 8
         self.d3 = self.d1
         self.NumberLabel = label_number
-        self.ep = 5
+        self.ep = 50
         self.drop=0.5
 
         self.weight = tor.ones(self.k, self.grnndim )
@@ -544,9 +544,10 @@ class grnn(nn.Module):
         super(grnn,self).__init__()
         self.weights=weights
         self.bias=bias
-        self.epoch=epoch
+        self.maxIterative=epoch
         self.relu=nn.ReLU(inplace=True)
         self.lstmcell=nn.LSTMCell(input_dim,hidden_dim)
+        self.maxdistence=1
 
     def forward(self,Ek):
 
@@ -554,15 +555,17 @@ class grnn(nn.Module):
         [k,b]=Ek.size()
         lastR = R0.view(k, b);
         lastS=tor.zeros(k,b)
-
-        for i in range(self.epoch):
+        count =0
+        while True:
             #print("round ",i)
             M = self.updateMessage(weight=self.weights,s=lastS,bias=self.bias)
             newS=self.updateState(r=lastR,m=M,lastS=lastS)
             newR= self.updateRelation(lastR,lastS)
-
             lastR=newR
             lastS=newS
+            count+=1
+            if self.closeTo(newS, lastS) or self.maxIterative<count:
+                break
         q=lastR
 
         return  self.relu(q)
@@ -570,7 +573,11 @@ class grnn(nn.Module):
 
 
 
-
+    def closeTo(self,s1,s2):
+        d=tor.dist(s1,s2)
+        if d<self.maxdistence:
+            return True
+        return False
 
     def updateMessage(self,weight,s,bias):
         [k,b]=s.size()
