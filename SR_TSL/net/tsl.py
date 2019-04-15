@@ -27,12 +27,12 @@ class skip_clipLSTM(nn.Module):
 
         out2,(h2,c2) = self.lstm2(x1,(self.lastH2,self.lastC2))
         x2 = tor.cat(( self.lastH2,h2))
-        self.lastH2 = h2
-        self.lastC2=c2
+        self.lastH2 = h2.detach()
+        self.lastC2=c2.detach()
 
         out3,(h3,c3)=self.lstm3(x2,(self.lastH3,self.lastC3))
-        self.lastH3 = h3.view(h3.size())
-        self.lastC3=c3
+        self.lastH3 = h3.detach()
+        self.lastC3=c3.detach()
 
         return  out3,(h3,c3)
 
@@ -42,6 +42,45 @@ class skip_clipLSTM(nn.Module):
 
     def initCHiddenstate(self,n,t,h):
         return tor.zeros(n, t, h)
+
+class skLSTM(nn.Module):
+    def __init__(self,dd,input_dim1,hidden_dim1):
+        super(skLSTM,self).__init__()
+        self.lstm1=nn.LSTMCell(input_dim1,hidden_dim1)
+        self.lstm2 = nn.LSTMCell(hidden_dim1,hidden_dim1)
+        self.lstm3 = nn.LSTMCell(hidden_dim1,hidden_dim1)
+        self.lastH1 = self.initHiddenstate( dd, hidden_dim1)
+        self.lastC1 = self.initCHiddenstate( dd, hidden_dim1)
+        self.lastH2 = self.initHiddenstate( dd*2, hidden_dim1)
+        self.lastH3 = self.initHiddenstate( dd*4, hidden_dim1)
+        self.lastC2 = self.initCHiddenstate( dd*2, hidden_dim1)
+        self.lastC3 = self.initCHiddenstate( dd*4, hidden_dim1)
+
+    def forward(self, q):
+
+        h1,c1=self.lstm1(q,(self.lastH1,self.lastC1))
+
+        x1=tor.cat((self.lastH1,h1))
+        self.lastH1=tor.clone(h1).detach()
+        self.lastC1=tor.clone(c1).detach()
+        h2,c2=self.lstm2(x1,(self.lastH2,self.lastC2))
+        x2 = tor.cat((h2,self.lastH2))
+        self.lastH2 = tor.clone(h2).detach()
+        self.lastC2 = tor.clone(c2).detach()
+        h3,c3 = self.lstm3(x2,(self.lastH3,self.lastC3))
+        self.lastH3 = tor.clone(h3).detach()
+        self.lastC3 = tor.clone(c3).detach()
+
+
+
+
+        return h3
+
+    def initCHiddenstate(self,  t, h):
+        return tor.ones( t, h)
+    def initHiddenstate(self,  t, h):
+        return tor.ones(t, h)
+
 class LearningClassier(nn.Module):
     def __init__(self,indim,NumberLabel,drop=0.5):
         super(LearningClassier,self).__init__()

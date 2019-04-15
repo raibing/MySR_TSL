@@ -384,9 +384,11 @@ class sr_tsl(nn.Module):
         # fc2
         self.linear2 = nn.Linear(self.grnndim, self.scLstmDim)
         # skip clip
-        self.skLSTM_Vec = tsl.skip_clipLSTM(1, self.scLstmDim, self.hiddenGRNN, self.d1, self.hidden3, self.d2, self.hidden4, self.d3)
-        self.skLSTM_Pos = tsl.skip_clipLSTM(1, self.scLstmDim, self.hiddenGRNN, self.d1, self.hidden3, self.d2, self.hidden4, self.d3)
+        #self.skLSTM_Vec = tsl.skip_clipLSTM(1, self.scLstmDim, self.hiddenGRNN, self.d1, self.hidden3, self.d2, self.hidden4, self.d3)
+        #self.skLSTM_Pos = tsl.skip_clipLSTM(1, self.scLstmDim, self.hiddenGRNN, self.d1, self.hidden3, self.d2, self.hidden4, self.d3)
 
+        self.skLSTM_Vec = tsl.skLSTM(self.k,self.scLstmDim,self.hidden3)
+        self.skLSTM_Pos = tsl.skLSTM(self.k,self.scLstmDim,self.hidden3)
 
 
     def setLabelNumber(self,n=5):
@@ -426,16 +428,18 @@ class sr_tsl(nn.Module):
 
                 ## q->inn k*1*scLstmDim
                 ## q- lastq = vector
-                innV = expendRank(1, q.add( - self.lastq))
-                innP = expendRank(1, q)
+                #innV = expendRank(1, q.add( - self.lastq))
+                #innP = expendRank(1, q)
+                innV=tor.add(q, - self.lastq)
                 self.lastq = q
                 ## skip-clip lstm for one frame
-                outtV, (self.lastHV, self.lastCV) = self.skLSTM_Vec(innV, self.lastHV, self.lastCV)
-                outtP, (self.lastHP, self.lastCP) = self.skLSTM_Pos(innP, self.lastHP, self.lastCP)
-
+               # outtV, (self.lastHV, self.lastCV) = self.skLSTM_Vec(innV, self.lastHV, self.lastCV)
+                #outtP, (self.lastHP, self.lastCP) = self.skLSTM_Pos(innP, self.lastHP, self.lastCP)
+                self.lastHV=self.skLSTM_Vec(innV)
+                self.lastHP=self.skLSTM_Pos(q)
 
                 # print("frame ", i*clipM+j, " finished")
-            # get hmV,h
+            # get hmV,h  4k*hidden3
             self.HmV = tor.add(self.lastHV, self.HmV)
             self.HcV = tor.add(self.lastCV, self.HcV)
             self.lastHV = self.HmV

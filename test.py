@@ -16,7 +16,8 @@ from SR_TSL.processor.myprocessor import myprocessor
 from torch.optim import Adam
 import random
 from  SR_TSL.processor import demo
-
+from  ST_GCN.processor import stprocessor
+from ST_GCN.processor import STIO
 if __name__ == "__main__":
 
 
@@ -25,31 +26,8 @@ if __name__ == "__main__":
 
 
     '''
-    train_path = "Data/train"
-    model = Model()
-
-
-
-
-    save_paths=[]
-    save_paths.append("SR_TSL/model/m1.yml")
-    save_paths.append("SR_TSL/model/m2.yml")
-    save_paths.append("SR_TSL/model/m3.yml")
-    save_paths.append("SR_TSL/model/m4.yml")
-    save_paths.append("SR_TSL/model/m5.yml")
-    save_paths.append("SR_TSL/model/m6.yml")
-    save_paths.append("SR_TSL/model/m7.yml")
-    print("load net")
-    model.loadNet(save_paths)
-
-    print("start train")
-
-
-    model.train(train_path)
-    print("train finish")
-    model.saveNet(save_paths)
-    print("save finish")
-    '''
+    
+    
     train_path = "Data/train"
     processor = myprocessor(learn=0.01)
     processor.runOnGPU(True)
@@ -65,11 +43,28 @@ if __name__ == "__main__":
     data = myIO.readOp3d(file, pattern="*ts_1.json")
     prediction=processor.predict(data)
     print("expect two prediction:",prediction)
+   '''
+    train_path = "Data/train"
+    test_path="Data/test"
+    save_path="model/test3d.yml"
+    mode=0 #0 for body+hand , 1 for body
+    processor= stprocessor.STprocessor()
+    processor.set3D(True)
+    processor.setMode(mode)
+    processor.learningRate=0.005
+    processor.init2()
+    processor.gpu()
+    processor.loadfrom(save_path)
+    pattern1="*ts.json"
+    pattern2 = "*ts_1.json"
+    processor.train2(train_path=train_path,pattern=pattern1,epoch=16)
+    processor.train2(train_path=train_path,pattern=pattern2,epoch=16)
+    processor.saveTo(save_path)
+    print("test start")
+    processor.test(train_path,pattern=pattern1)
 
-    #demo.test()
 
-
-
+    print("done")
 
 
 

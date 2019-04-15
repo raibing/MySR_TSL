@@ -286,30 +286,32 @@ def test():
         matrix[x] = 1
         return matrix
 
-    k = 31
+    k = 67
     grnndim = 8
     hm = 4
     n = 4
     weight = tor.ones(k, grnndim)
     bias = tor.zeros(k, grnndim)
     cri = sr.myLoss()
-    #rnn = sr.sr_tsl(8, n)
+    rnn = tsl.skLSTM(k,grnndim,hm)
     learn = tsl.LearningClassier(8, n, drop=0.5)
-    rnn=nn.LSTM(hm,hm,hm)
+    #rnn=nn.LSTM(hm,hm,hm)
 
-    lasth = tor.zeros(4, k, hm)
+    lasth = tor.ones(k, hm)
     lasth2 = tor.zeros(4, 1, hm)
     lasth3 = tor.zeros(4, 1, hm)
-    lastc = tor.zeros(4, k, hm)
+    lastc = tor.ones(k, hm)
     lastc1 = tor.zeros(4, 1, hm)
     lastc2 = tor.zeros(4, 1, hm)
-    optimizer = Adam(learn.parameters(), lr=0.001)
+    optimizer = Adam(rnn.parameters(), lr=0.05)
 
-    for i in range(3):
-        data = tor.rand(31,k, 4)
-        loss = 0
-        out ,(lasth,lastc) = rnn(data,(lasth,lastc))
-        print(out.size())
+    for i in range(100):
+        data = tor.rand(k, grnndim)
+        optimizer.zero_grad()
+        #rnn.zero_grad()
+        out=rnn(data)
+
+
 
         # hp=Variable(hp,requires_grad=False)
         # hp=tor.rand(2,8,1,8)
@@ -321,9 +323,10 @@ def test():
         ytrue = initLabelMatrix(n, x)
 
         loss = cri(out, ytrue)
-        optimizer.zero_grad()
+
         loss.backward()
         optimizer.step()
         # for p in rnn.parameters():
         #   p.data.add_(-0.001, p.grad.data)
         print(i, ":term")
+        print(loss)
